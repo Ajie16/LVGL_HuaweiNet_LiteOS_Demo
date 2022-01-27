@@ -21,9 +21,9 @@
 #include "main.h"
 #include "dma.h"
 #include "fatfs.h"
+#include "usart.h"
 #include "sdmmc.h"
 #include "spi.h"
-#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -32,16 +32,14 @@
 #include "lcd.h"
 #include "lv_port_disp.h"
 #include "lv_port_fs.h"
+#include "transport.h"
+#include "esp8266.h"
+#include "huawei.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 /* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-FATFS   fs;			/* FATFS 文件系统对象 */
-FRESULT fr; 		/* FATFS API 返回值 */
-/* USER CODE END PV */
 
 /* USER CODE END PTD */
 
@@ -57,6 +55,8 @@ FRESULT fr; 		/* FATFS API 返回值 */
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+FATFS   fs;			/* FATFS 文件系统对象 */
+FRESULT fr; 		/* FATFS API 返回值 */
 
 /* USER CODE END PV */
 
@@ -70,7 +70,17 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 osSemaphoreId_t DMA_SemaphoreHandle;
 const osSemaphoreAttr_t DMA_Semaphore_attributes = {
-  .name = "DMA_Semaphore"
+  .name = "SPI_DMA_Semaphore"
+};
+
+osSemaphoreId_t TX_DMA_SemaphoreHandle;
+const osSemaphoreAttr_t TX_DMA_Semaphore_attributes = {
+  .name = "TX_DMA_Semaphore"
+};
+
+osSemaphoreId_t RX_DMA_SemaphoreHandle;
+const osSemaphoreAttr_t RX_DMA_Semaphore_attributes = {
+  .name = "RX_DMA_Semaphore"
 };
 
 
@@ -84,7 +94,7 @@ const osThreadAttr_t led_task_attributes = {
 osThreadId_t lcd_taskHandle;
 const osThreadAttr_t lcd_task_attributes = {
   .name = "lcd_task",
-  .stack_size = 512 * 4,
+  .stack_size = 512 * 10,
   .priority = (osPriority_t) osPriorityNormal1,
 };
 
@@ -95,70 +105,27 @@ void Led_Task(void *argument)
 {
 	while(1)
 	{
+		
 		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
 		osDelay(1000);
 	}
 }
 
 
-lv_img_dsc_t testimg1 = {
-	.header.always_zero = 0,
-	.header.w = 150,
-	.header.h = 60,
-	.data_size = 150 * 60 * 2,
-	.header.cf = LV_IMG_CF_TRUE_COLOR,
-};
-
+uint8_t dat[100];
 void Lcd_Task(void *argument)
 {
-	lv_fs_res_t fs_res=LV_FS_RES_NOT_IMP;
-	lv_fs_file_t lv_file;
-	int offset;
-	LCD_Init();
-	lv_init();
-	lv_port_disp_init();//lvgl 显示接口初始化,放在 lv_init()的后面
-	lv_port_fs_init();
-	
-	lv_style_t style1;
-	lv_style_init(&style1);
-	lv_style_set_bg_color(&style1, LV_STATE_DEFAULT,LV_COLOR_BLACK);
-	lv_style_set_border_width(&style1,LV_STATE_DEFAULT, 0);
-	lv_style_set_radius(&style1,LV_STATE_DEFAULT,0);
-	
-	lv_obj_t* bkg = lv_obj_create(lv_scr_act(),NULL);
-	lv_obj_set_pos(bkg,0,0);
-	lv_obj_set_size(bkg,240,240);
-	lv_obj_add_style(bkg,LV_OBJ_PART_MAIN,&style1);
-	
-	lv_obj_t* homonoryimg = lv_img_create(lv_scr_act(), NULL);
-	
+	printf("ESP8266 Ready: 2S!\r\n");
+	osDelay(1000);
+	printf("ESP8266 Ready: 1S!\r\n");
+	osDelay(1000);
+	printf("ESP8266 Init!\r\n");
+	esp8266_Connect_IOTServer();
+	huawei_connect();
+	huawei_ping();
 	while(1)
 	{
 		
-		uint8_t* framebuffer1 = (uint8_t*)lv_mem_alloc(sizeof(uint8_t)*18000);
-		fs_res = lv_fs_open(&lv_file, "S:/os.bin", LV_FS_MODE_RD| LV_FS_MODE_WR);
-		if ( fs_res != LV_FS_RES_OK )
-			printf( "LVGL FS open error. (%d)\r\n", fs_res );
-		offset = 0;
-		offset += 4; //从offset=4
-		lv_fs_seek(&lv_file, offset);
-
-		//计算bin文件里一共包含多少张图片，然后不断的给tft进行显示
-		for(int i = 0 ; i < 401 ; i++)
-		{
-			fs_res = lv_fs_read(&lv_file, (uint8_t *)framebuffer1, 18000,NULL);
-			testimg1.data = (const uint8_t *)framebuffer1;
-			lv_img_set_src(homonoryimg, &testimg1);
-			lv_obj_align(homonoryimg, NULL, LV_ALIGN_CENTER, 0, 0);
-
-			lv_task_handler();
-			offset += 18004;
-			fs_res = lv_fs_seek(&lv_file, offset);
-			osDelay(20);
-		}
-		lv_mem_free(framebuffer1);
-		framebuffer1 = NULL;
-		lv_fs_close(&lv_file);
 		osDelay(1000);
 	}
 
@@ -198,10 +165,15 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
+  MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
+//	HAL_UART_Receive_IT(&hlpuart1,&temp_rx,1);
 	osKernelInitialize();
   /* creation of uart_task */
 	DMA_SemaphoreHandle = osSemaphoreNew(1, 1, &DMA_Semaphore_attributes);
+	TX_DMA_SemaphoreHandle = osSemaphoreNew(1, 1, &TX_DMA_Semaphore_attributes);
+	RX_DMA_SemaphoreHandle = osSemaphoreNew(1, 1, &RX_DMA_Semaphore_attributes);
+	
   led_taskHandle = osThreadNew(Led_Task, NULL, &led_task_attributes);
 	lcd_taskHandle = osThreadNew(Lcd_Task, NULL, &lcd_task_attributes);
 	osKernelStart();
@@ -257,8 +229,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_SDMMC1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_LPUART1
+                              |RCC_PERIPHCLK_SDMMC1;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+  PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
   PeriphClkInit.Sdmmc1ClockSelection = RCC_SDMMC1CLKSOURCE_PLLSAI1;
   PeriphClkInit.PLLSAI1.PLLSAI1Source = RCC_PLLSOURCE_HSE;
   PeriphClkInit.PLLSAI1.PLLSAI1M = 1;

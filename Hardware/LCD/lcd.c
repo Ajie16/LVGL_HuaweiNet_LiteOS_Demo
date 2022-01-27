@@ -28,7 +28,7 @@ uint8_t SPI_WriteByte(uint8_t *TxData,uint16_t size)
 		return HAL_SPI_Transmit_DMA(&hspi2,TxData,size);
 	}else
 	{
-		//获取失败
+		//获取失败 
 		return 1;
 	}
 }
