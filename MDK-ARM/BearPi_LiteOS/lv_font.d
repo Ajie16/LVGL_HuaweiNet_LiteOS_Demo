@@ -1,0 +1,15 @@
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\lv_font.c
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\lv_font.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_conf_internal.h
+bearpi_liteos\lv_font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_conf_kconfig.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../../../lv_conf.h
+bearpi_liteos\lv_font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+bearpi_liteos\lv_font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\lv_symbol_def.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_misc/lv_area.h
+bearpi_liteos\lv_font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_misc/lv_mem.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_misc/lv_log.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_misc/lv_types.h
+bearpi_liteos\lv_font.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_font\../lv_misc/lv_utils.h

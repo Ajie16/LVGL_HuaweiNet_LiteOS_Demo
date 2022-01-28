@@ -16,7 +16,7 @@ extern unsigned char buf[200];
 uint8_t huawei_connect(void);
 uint8_t huawei_ping(void);
 
-
+void test_post(void);
 
 #endif
 

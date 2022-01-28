@@ -72,7 +72,7 @@ int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
 
 	* @param payloadlen  MQTT载荷的长度
 
-	*返回序列化数据的长度。< = 0表示错误
+	* 返回序列化数据的长度。< = 0表示错误
   */
 int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		MQTTString topicName, unsigned char* payload, int payloadlen)

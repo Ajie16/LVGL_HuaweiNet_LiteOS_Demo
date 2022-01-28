@@ -1,15 +1,22 @@
 #include "huawei.h"
 #include "utils_hmac.h"
 #include "cmsis_os.h"
+#include <signal.h>
+
+int toStop = 0;
+
+
+
 uint16_t buflen=200;
 unsigned char buf[200];
 
-#define ClientID "61e7b86fc7fb24029b0d6cb1_1642576943991_0_0_2022012719"
+
+
+#define ClientID "61e7b86fc7fb24029b0d6cb1_1642576943991_0_0_2022012815"
 
 #define Username "61e7b86fc7fb24029b0d6cb1_1642576943991"
 
-#define Password "52f9f12ba2835e627499ec1a9f9b38a3c21983903f51caeb436ba4d940942b37"
-
+#define Password "7a64d1450ccf854b128ad16d839e01ec56968006365874de868a543e0c89b738"
 
 uint8_t huawei_connect()
 {
@@ -17,10 +24,6 @@ uint8_t huawei_connect()
 
 		printf("进入连接云服务器函数\r\n");
 		MQTTPacket_connectData data = MQTTPacket_connectData_initializer;//配置部分可变头部的值
-	
-		printf("ClientId:%s\r\n",ClientID);
-		printf("Username:%s\r\n",Username);
-		printf("Password:%s\r\n",Password);
 		
 		data.MQTTVersion = 3;
 		data.clientID.cstring = ClientID;						//客户端标识，用于区分每个客户端xxx为自定义，后面为固定格式
@@ -56,6 +59,7 @@ uint8_t huawei_connect()
 uint8_t huawei_ping(void)
 {
 		uint32_t len;
+		memset(buf,0,buflen);
 		len = MQTTSerialize_pingreq(buf, buflen);
 		transport_sendPacketBuffer(3, buf, len);
 		printf("Ping...\r\n");
@@ -70,3 +74,25 @@ uint8_t huawei_ping(void)
 
 }
 
+
+void test_post(void)
+{
+	char payload[100]={0};
+	int rc = 0;
+	int len = 0;
+	
+	sprintf(payload,
+					"{\"services\":[{\"service_id\":\"BasicData\",\"properties\":{\"luminance\":%d},\"eventTime\":\"NULL\"}]}",
+					66);
+	
+	memset(buf,0,buflen);
+	MQTTString topicString = MQTTString_initializer;
+	
+	topicString.cstring = "$oc/devices/61e7b86fc7fb24029b0d6cb1_1642576943991/sys/properties/report";
+	printf("StrLen: %d\r\n",strlen((char*)payload));
+	len=MQTTSerialize_publish(buf,buflen,0,0,0,0,topicString,(unsigned char*)payload,strlen(payload));
+	printf("Publish Len : %d\r\n",len);
+	rc = transport_sendPacketBuffer(3, buf, len);
+	if(rc == 0)
+		printf("Send OK!\r\n");
+}

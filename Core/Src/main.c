@@ -123,6 +123,8 @@ void Lcd_Task(void *argument)
 	esp8266_Connect_IOTServer();
 	huawei_connect();
 	huawei_ping();
+	
+	test_post();
 	while(1)
 	{
 		

@@ -1,0 +1,12 @@
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\lv_debug.c
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\lv_debug.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\../lv_conf_internal.h
+bearpi_liteos\lv_debug.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\../lv_conf_kconfig.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\../../../lv_conf.h
+bearpi_liteos\lv_debug.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\lv_mem.h
+bearpi_liteos\lv_debug.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\lv_log.h
+bearpi_liteos\lv_debug.o: ..\Middlewares\LVGL\LVGL\lvgl\src\lv_misc\lv_types.h
+bearpi_liteos\lv_debug.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
