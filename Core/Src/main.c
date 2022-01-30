@@ -94,12 +94,28 @@ const osThreadAttr_t led_task_attributes = {
 osThreadId_t lcd_taskHandle;
 const osThreadAttr_t lcd_task_attributes = {
   .name = "lcd_task",
-  .stack_size = 512 * 10,
+  .stack_size = 512 * 2,
   .priority = (osPriority_t) osPriorityNormal1,
+};
+
+osThreadId_t huawei_taskHandle;
+const osThreadAttr_t huawei_task_attributes = {
+  .name = "huawei_task",
+  .stack_size = 512 * 2,
+  .priority = (osPriority_t) osPriorityNormal3,
+};
+
+osThreadId_t ping_taskHandle;
+const osThreadAttr_t ping_task_attributes = {
+  .name = "ping_task",
+  .stack_size = 512 * 1,
+  .priority = (osPriority_t) osPriorityNormal2,
 };
 
 void Led_Task(void *argument);
 void Lcd_Task(void *argument);
+void Huawei_Task(void *argument);
+void Ping_Task(void *argument);
 
 void Led_Task(void *argument)
 {
@@ -115,16 +131,7 @@ void Led_Task(void *argument)
 uint8_t dat[100];
 void Lcd_Task(void *argument)
 {
-	printf("ESP8266 Ready: 2S!\r\n");
-	osDelay(1000);
-	printf("ESP8266 Ready: 1S!\r\n");
-	osDelay(1000);
-	printf("ESP8266 Init!\r\n");
-	esp8266_Connect_IOTServer();
-	huawei_connect();
-	huawei_ping();
-	
-	test_post();
+
 	while(1)
 	{
 		
@@ -132,6 +139,30 @@ void Lcd_Task(void *argument)
 	}
 
 }
+void Huawei_Task(void *argument)
+{
+	printf("ESP8266 Ready: 2S!\r\n");
+	osDelay(1000);
+	printf("ESP8266 Ready: 1S!\r\n");
+	osDelay(1000);
+	printf("ESP8266 Init!\r\n");
+	esp8266_Connect_IOTServer();
+	huawei_connect();
+	test_post();
+	while(1)
+	{
+		osDelay(1000);
+	}
+}
+void Ping_Task(void *argument)
+{
+	while(1)
+	{
+		osDelay(15000);
+		huawei_ping();
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -178,6 +209,8 @@ int main(void)
 	
   led_taskHandle = osThreadNew(Led_Task, NULL, &led_task_attributes);
 	lcd_taskHandle = osThreadNew(Lcd_Task, NULL, &lcd_task_attributes);
+	huawei_taskHandle = osThreadNew(Huawei_Task, NULL, &huawei_task_attributes);
+	ping_taskHandle = osThreadNew(Ping_Task, NULL, &ping_task_attributes);
 	osKernelStart();
   /* USER CODE END 2 */
 
