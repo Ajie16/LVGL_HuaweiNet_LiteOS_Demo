@@ -101,7 +101,7 @@ const osThreadAttr_t lcd_task_attributes = {
 osThreadId_t huawei_taskHandle;
 const osThreadAttr_t huawei_task_attributes = {
   .name = "huawei_task",
-  .stack_size = 512 * 2,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal3,
 };
 
@@ -148,7 +148,14 @@ void Huawei_Task(void *argument)
 	printf("ESP8266 Init!\r\n");
 	esp8266_Connect_IOTServer();
 	huawei_connect();
+	osDelay(100);
+		huawei_ping();
+	osDelay(100);
 	test_post();
+	osDelay(100);
+	test_get();
+	
+
 	while(1)
 	{
 		osDelay(1000);
@@ -158,8 +165,7 @@ void Ping_Task(void *argument)
 {
 	while(1)
 	{
-		osDelay(15000);
-		huawei_ping();
+		osDelay(25000);
 	}
 }
 

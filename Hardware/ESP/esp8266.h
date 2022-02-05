@@ -9,9 +9,6 @@
 #define SSID "TP-LINK_6666"
 #define PASS "xj15855065203"
 
-//#define IPBUF "192.168.0.7"
-//#define PORTNUM "8086"
-
 #define IOT_DOMAIN_NAME "a1604049d8.iot-mqtts.cn-north-4.myhuaweicloud.com"
 #define IOT_PORTNUM 	"1883"
 

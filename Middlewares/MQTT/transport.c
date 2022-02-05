@@ -49,11 +49,6 @@ int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen)
 
 /*
 *   作用: 替代原来的transport_getdata函数，因为没有用到socket
-*   说明：使用方式与原函数一致=recv();
-*   参数说明：
-*       USART2_RX_BUF[]是串口接收的缓存区
-*       read_buf_len 串口是读到的实际字节数
-*   返回值：非常重要！自行看源码吧
 */
 
 int transport_getdata(unsigned char* buf,int n)

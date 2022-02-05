@@ -2,27 +2,29 @@
 #include "utils_hmac.h"
 #include "cmsis_os.h"
 #include <signal.h>
-
-int toStop = 0;
-
-
-
+#include "lvgl.h"
 uint16_t buflen=200;
-unsigned char buf[200];
+unsigned char buf[200]={0};
 
+#define ClientID "61f4c4b0de9933029be530e7_ESP8266_0_0_2022020321"
+#define Username "61f4c4b0de9933029be530e7_ESP8266"
+#define Password "42492f8f9fca346c5142f7088ab88dd964087663729fa3a3468bb50632d2960b"
 
+#define POST_TOPIC "$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/properties/report"
 
-#define ClientID "61e7b86fc7fb24029b0d6cb1_1642576943991_0_0_2022012815"
+#define GET_TOPIC "$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/commands/#"
 
-#define Username "61e7b86fc7fb24029b0d6cb1_1642576943991"
+char RETURN_TOPIC[]="$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/commands/response/request_id=0b2e0999-55a1-43f9-a432-d46a8d58ae7e";
 
-#define Password "7a64d1450ccf854b128ad16d839e01ec56968006365874de868a543e0c89b738"
+#define PAY_LOAD "{\"services\":[{\"service_id\":\"Home\",\"properties\":{\"Temp\":\"%d\"},\"eventTime\":\"NULL\"}]}"
 
 uint8_t huawei_connect()
 {
 		uint32_t len;
 
 		printf("进入连接云服务器函数\r\n");
+	
+		memset(buf,0,buflen);
 		MQTTPacket_connectData data = MQTTPacket_connectData_initializer;//配置部分可变头部的值
 		
 		data.MQTTVersion = 3;
@@ -33,7 +35,6 @@ uint8_t huawei_connect()
 		data.password.cstring = Password;						//密码，工具生成
 		
 		len = MQTTSerialize_connect(buf, buflen, &data); 		/*1 构造连接报文*/
-		printf("LEN: %d \r\n",len);
 		transport_sendPacketBuffer(3,buf, len);				//发送连接请求
 		
 		unsigned char sessionPresent, connack_rc;
@@ -77,22 +78,93 @@ uint8_t huawei_ping(void)
 
 void test_post(void)
 {
-	char payload[100]={0};
-	int rc = 0;
 	int len = 0;
+	int rc = 0;
+	unsigned char topic[]= POST_TOPIC;
+	unsigned char payload[100]={0};
 	
-	sprintf(payload,
-					"{\"services\":[{\"service_id\":\"BasicData\",\"properties\":{\"luminance\":%d},\"eventTime\":\"NULL\"}]}",
-					66);
+	sprintf((char*)payload,PAY_LOAD,19);
 	
 	memset(buf,0,buflen);
 	MQTTString topicString = MQTTString_initializer;
+	topicString.cstring = (char *)topic;
 	
-	topicString.cstring = "$oc/devices/61e7b86fc7fb24029b0d6cb1_1642576943991/sys/properties/report";
-	printf("StrLen: %d\r\n",strlen((char*)payload));
-	len=MQTTSerialize_publish(buf,buflen,0,0,0,0,topicString,(unsigned char*)payload,strlen(payload));
-	printf("Publish Len : %d\r\n",len);
+	len=MQTTSerialize_publish(buf,buflen,0,0,0,0,topicString,payload,strlen((char *)payload));
+	
 	rc = transport_sendPacketBuffer(3, buf, len);
-	if(rc == 0)
+	if(!rc)
 		printf("Send OK!\r\n");
+	else
+		printf("Send WRONG!\r\n");
+}
+
+int toStop = 0;
+
+void test_get(void)
+{
+	int msgid = 1;
+	MQTTString topicString = MQTTString_initializer;
+	MQTTString ropicString = MQTTString_initializer;
+	int req_qos = 0;
+	char* payload = "{\"result_code\":0,\"response_name\":\"COMMAND_RESPONSE\",\"paras\":{\"result\":\"success\"}}";
+	int payloadlen = strlen(payload);
+	int len = 0;
+	int rc=0;
+	char * id;
+	
+	memset(buf,0,buflen);
+	/* subscribe */
+	topicString.cstring = GET_TOPIC;
+	len = MQTTSerialize_subscribe(buf, buflen, 0, msgid, 1, &topicString, &req_qos);
+
+	rc = transport_sendPacketBuffer(3, buf, len);
+	if (MQTTPacket_read(buf, buflen, transport_getdata) == SUBACK) 	/* wait for suback */
+	{
+		unsigned short submsgid;
+		int subcount;
+		int granted_qos;
+
+		rc = MQTTDeserialize_suback(&submsgid, 1, &subcount, &granted_qos, buf, buflen);
+		if (granted_qos != 0)
+		{
+			printf("granted qos != 0, %d\n", granted_qos);
+		}
+	}
+
+	/* loop getting msgs on subscribed topic */
+	ropicString.cstring = RETURN_TOPIC;
+	while (!toStop)
+	{
+		/* transport_getdata() has a built-in 1 second timeout,
+		your mileage will vary */
+		if (MQTTPacket_read(buf, buflen, transport_getdata) == PUBLISH)
+		{
+			unsigned char dup;
+			int qos;
+			unsigned char retained;
+			unsigned short msgid;
+			int payloadlen_in;
+			unsigned char* payload_in;
+			int rc;
+			MQTTString receivedTopic;
+
+			rc = MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
+					&payload_in, &payloadlen_in, buf, buflen);
+			
+			id = &receivedTopic.lenstring.data[strlen("$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/commands/request_id=")];
+			
+			memcpy(&ropicString.cstring[strlen("$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/commands/response/request_id=")],
+						id,
+						strlen("0b2e0999-55a1-43f9-a432-d46a8d58ae7e")
+						);
+
+			printf("message arrived %.*s\r\n", payloadlen_in, payload_in);
+
+		}
+		memset(buf,0,buflen);
+		printf("publishing reading\r\n");
+		
+		len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 0, ropicString, (unsigned char*)payload, payloadlen);
+		rc = transport_sendPacketBuffer(3, buf, len);
+	}
 }

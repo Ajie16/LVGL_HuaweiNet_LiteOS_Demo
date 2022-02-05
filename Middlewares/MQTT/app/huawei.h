@@ -17,7 +17,7 @@ uint8_t huawei_connect(void);
 uint8_t huawei_ping(void);
 
 void test_post(void);
-
+void test_get(void);
 #endif
 
 
