@@ -1,1 +1,1 @@
-# BearPi 移植 LiteOS+Paho MQTT 连接华为云
+# 小熊派智慧农业实现 LVGL+LiteOS

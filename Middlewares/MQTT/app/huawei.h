@@ -10,6 +10,16 @@
 #include "usart.h"
  
  
+
+#define ClientID "61f4c4b0de9933029be530e7_ESP8266_0_0_2022020321"
+#define Username "61f4c4b0de9933029be530e7_ESP8266"
+#define Password "42492f8f9fca346c5142f7088ab88dd964087663729fa3a3468bb50632d2960b"
+
+#define POST_TOPIC "$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/properties/report"
+
+#define GET_TOPIC "$oc/devices/61f4c4b0de9933029be530e7_ESP8266/sys/commands/#"
+#define PAY_LOAD "{\"services\":[{\"service_id\":\"Home\",\"properties\":{\"Temp\":\"%d\",\"Hum\":\"%d\"},\"eventTime\":\"NULL\"}]}"
+ 
 extern uint16_t buflen;
 extern unsigned char buf[200];
 

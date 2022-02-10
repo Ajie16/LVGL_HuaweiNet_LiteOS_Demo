@@ -64,6 +64,10 @@ void Error_Handler(void);
 #define LCD_WR_RS_GPIO_Port GPIOC
 #define LCD_RST_Pin GPIO_PIN_7
 #define LCD_RST_GPIO_Port GPIOC
+#define MOTO_Pin GPIO_PIN_8
+#define MOTO_GPIO_Port GPIOB
+#define LED_Pin GPIO_PIN_9
+#define LED_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
